@@ -84,7 +84,6 @@ classdef Diffusion2D
 
         % Function to create b in Ax=b at some time t:
         % Errors:
-        % Signs/Constants for the BCs
 
         function b = makeb(dif, t, prev)
             if dif.BCtype(1) == 'd' && dif.BCtype(2) == 'd' && dif.BCtype(3) == 'd' && dif.BCtype(4) == 'd'
@@ -188,6 +187,7 @@ classdef Diffusion2D
         % -------------------------------
 
         % Source Function: ut = uxx + f(x,y,t)
+        % Assuming the solution is u(x,y,t) = e^t * cos(x) * cos(y)
 
         function fXYT = fXYT(dif, x, y, t)
             fXYT = (2*dif.k + 1)*exp(t)*cos(x)*cos(y);
