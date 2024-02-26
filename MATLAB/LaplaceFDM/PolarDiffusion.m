@@ -1,30 +1,40 @@
-bSteps = 10;
-tSteps = 10;
-dr = (2*pi)/(bSteps+1);
-dtheta = (2*pi)/(bSteps+1);
-k = 1e-5;
-dt = (k/2)*((dr^2)+(dtheta^2));
+clear
+clc
 
-u = zeros(bSteps+1, bSteps+1, tSteps);
+bSteps = 10; % Amount of steps on the boundary
+tSteps = 5; % Amount of time steps
+dr = (2*pi)/(bSteps+1); % Delta r
+dtheta = (2*pi)/(bSteps+1); % Delta theta
+k = 1e-2; % Diffusivity Constant
+dt = (k/2)*((dr^2)+(dtheta^2)); % So called CFL for Delta time
 
-for i = 1:bSteps+1
-    for j = 1:bSteps+1
-        u(i,j,1) = IC((i-1)*dr, (j-1)*dtheta);
+u = zeros(bSteps+1, bSteps+1, tSteps); % Initialize tensor u(x,y,t)
+
+for i = 1:bSteps+1 % Loop to traverse r
+    for j = 1:bSteps+1 % Loop to traverse theta
+        u(i,j,1) = IC((i-1)*dr, (j-1)*dtheta); % Enter Initial conditions to tensor
     end
 end
 
-for t = 2:tSteps
-    for i = bSteps+1:-1:1
-        for j = 1:bSteps+1
-            ri = dr*(i-1);
-            if i == 1
+for t = 2:tSteps % Loop to traverse time
+    for i = bSteps+1:-1:1 % Loop to traverse r
+        for j = 1:bSteps+1 % Loop to traverse theta
+            ri = dr*(i-1); % Calculate ri to simplify calculations, subtract 1 to account for Matlab indexing
+
+            if i == 1 % 1 is 0... but we are using r1 to solve for center
                 ri = dr*i;
             end
+
+            % Constants: Refer to notes
             psi = ((-2*k*dt)*(((ri^2)*(dtheta^2))+(dr^2)))/((ri^2)*(dr^2)*(dtheta^2));  
             alpha = ((2*ri+dr)*k*dt)/(2*ri*(dr^2));
             beta = ((2*ri-dr)*k*dt)/(2*ri*(dr^2));
             phi = (k*dt)/((ri^2)*(dtheta^2));
-            if i == 1
+
+            if i == 1 % if at the center -> u(0,theta)
+
+                % Do this conditional so you don't cause indexing errors at
+                % corners
                 jUp = j+1;
                 jDown = j-1;
                 if j == 1
@@ -32,35 +42,47 @@ for t = 2:tSteps
                 elseif j == bSteps+1
                     jUp = 1;
                 end
-                u(i, j, t) = (1/beta)*(((1/dt)*(u(i+1,j,t)-u(i+1,j,t-1)))-psi*u(i+1,j,t)-alpha*u(i+2,j,t)-phi*u(i+1,jUp,t)-phi*u(i+1,jDown,t));
-                %disp(u(i,j,t)); % Diverging...
-            elseif i == bSteps+1 && j == 1
+                %--------------------------------------------------------
+
+                u(i, j, t) = (1/beta)*(((1/dt)*(u(i+1,j,t)-u(i+1,j,t-1))) - psi*u(i+1,j,t)-alpha*u(i+2,j,t)-phi*u(i+1,jUp,t)-phi*u(i+1,jDown,t));
+                disp(u(i,j,t));
+                % Diverging...
+            elseif i == bSteps+1 && j == 1 % if at South-East edge -> Use given BC and north = south; 2nd and 5th term
                 u(i, j, t) = ((psi+1)*u(i, j, t-1)) + (alpha*BC(dt*t,dtheta*j)) + (beta*u(i-1, j, t-1)) + (phi*u(i, j+1, t-1)) + (phi*u(i, bSteps+1, t-1));
-                %disp(u(i,j,t)); % What
-            elseif i == bSteps+1 && j == bSteps+1
+            elseif i == bSteps+1 && j == bSteps+1 % if at North-East edge -> Use given BC and north = south; 2nd and 4th term
                 u(i, j, t) = ((psi+1)*u(i, j, t-1)) + (alpha*BC(dt*t,dtheta*j)) + (beta*u(i-1, j, t-1)) + (phi*u(i, 1, t-1)) + (phi*u(i, j-1, t-1));
-                %disp(u(i,j,t));
-            elseif i == bSteps+1
+            elseif i == bSteps+1 % if your on East edge of r -> Use given BC function; look at 2nd term
                 u(i, j, t) = ((psi+1)*u(i, j, t-1)) + (alpha*BC(dt*t,dtheta*j)) + (beta*u(i-1, j, t-1)) + (phi*u(i, j+1, t-1)) + (phi*u(i, j-1, t-1));
-                %disp(u(i,j,t));
-            elseif j == 1
+            elseif j == 1 % if your on the South edge of theta -> north edge = south edge; look at 5th term
                 u(i, j, t) = ((psi+1)*u(i, j, t-1)) + (alpha*u(i+1, j, t-1)) + (beta*u(i-1, j, t-1)) + (phi*u(i, j+1, t-1)) + (phi*u(i, bSteps+1, t-1));
-                %disp(u(i,j,t));
-            elseif j == bSteps+1
-                u(i, j, t) = ((psi+1)*u(i, j, t-1)) + (alpha*u(i+1, j, t-1)) + (beta*u(i-1, j, t-1)) + (phi*u(i, 1, t-1)) + (phi*u(i, bSteps+1, t-1));
-            else
+            elseif j == bSteps+1 % if your on the North edge of theta -> north edge = south edge; look at 4th term
+                u(i, j, t) = ((psi+1)*u(i, j, t-1)) + (alpha*u(i+1, j, t-1)) + (beta*u(i-1, j, t-1)) + (phi*u(i, 1, t-1)) + (phi*u(i, j-1, t-1)); 
+            else % if your in the middle of the grid
                 u(i, j, t) = ((psi+1)*u(i, j, t-1)) + (alpha*u(i+1, j, t-1)) + (beta*u(i-1, j, t-1)) + (phi*u(i, j+1, t-1)) + (phi*u(i, j-1, t-1));
             end
         end
     end
 end
 
-disp(u)
+% Show tensor
+%disp(u)
 
+% Show Derivative
+% disp("Testing")
+% time_point = 3;
+% disp((u(2,1,time_point) - u(2,1,time_point - 1))/dt)
+% u(2,1,time_point - 1)
+% u(2,1,time_point)
+
+disp("Testing Ends");
+
+
+% Initial Condition function
 function f = IC(r,theta)
 f = sin(r)*sin(r); 
 end
 
+% Boundary Condition function
 function g = BC(t,theta)
 g = 0; 
 end
