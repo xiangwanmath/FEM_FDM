@@ -27,11 +27,11 @@ classdef Laplace2DFD
         function uMat = runSim(lpc)
             A = lpc.makeA();
             b = lpc.makeb();
-            U = linsolve(A, b);
-            % len = size(b);
-            % x0 = zeros(len(1),1);
-            % x0(1, 1) = 1;
-            % U = lpc.jacobi(A, b, x0, 1e-6, 100);
+            %U = linsolve(A, b);
+            len = size(b);
+            x0 = zeros(len(1),1);
+            x0(1, 1) = 1;
+            U = lpc.jacobi(A, b, x0, 1e-6, 100);
             if lpc.BCtype(1) == "d" && lpc.BCtype(2) == "d" && lpc.BCtype(3) == "d" && lpc.BCtype(4) == "d"
                 uMat = zeros(lpc.steps(1), lpc.steps(1));
                 count = 1;
@@ -225,39 +225,6 @@ classdef Laplace2DFD
 
         % ----------------------------
 
-        %{
-
-        function u = jacobi(lpc, A, b, maxIts)
-
-            le = size(A);
-            L = tril(A);
-            L(1:le(1)+1:end) = 0;
-            D = diag(A);
-            D = diag(D);
-            U = triu(A);
-            U(1:le(1):end) = 0;
-            count = 0;
-
-            LU = L+U;
-            Dinv = inv(D);
-            DB = Dinv*b;
-            DLU = -Dinv*LU;
-
-            len = size(b);
-            xCurr = zeros(len(1),1);
-            xCurr(1, 1) = 1;
-            xNext = -DLU*xCurr + DB; 
-
-            while ~lpc.hasConverged(xNext, xCurr, 5) && count < maxIts
-                xCurr = xNext;
-                xNext = -DLU*xCurr + DB;
-                count = count + 1;
-            end
-            u = xNext;
-        end
-
-        %}
-
         function x = jacobi(~, A, b, x0, tol, max_iter)
             [~,n] = size(A);
 
@@ -278,18 +245,6 @@ classdef Laplace2DFD
                 end
 
                 iter = iter + 1;
-            end
-        end
-
-
-        function bool = hasConverged(~, vNext, vCurr, percent)
-            numer = norm(vNext-vCurr);
-            denom = norm(vCurr);
-            error = (numer/denom)*100;
-            if error <= percent
-                bool = true;
-            else
-                bool = false;
             end
         end
 

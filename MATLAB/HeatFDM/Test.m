@@ -1,7 +1,7 @@
 tSteps = 10; % Number of iterations -> will replace this later
 xSteps = 50; % Number of INTERIOR (BC non-inclusive) x coords
 ySteps = 50; % Number of INTERIOR (BC non-inclusive) y coords
-k = .001; % Diffusion Constant 
+k = .00001; % Diffusion Constant 
 tStep = .01; % dt
 BCtype = ['d','d','d','d']; % Type of Boundary Conditions, d = dichirlet, n = neumann, r = robin
 BoundCoord = [pi/2,(3*pi)/2; pi/2, (3*pi)/2]; % Top: X0->XL Bottom: Y0->YL

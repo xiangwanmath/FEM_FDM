@@ -63,13 +63,13 @@ classdef Diffusion2D
 
         % Function to create A in Ax=b:
         % Errors:
-        % Not correct enteries
+        % 0s on diag?
         % Optimization:
         % Possibly use sparse function
 
         function A = makeA(dif)
-            xCon = (dif.k*2*dif.dt)/(dif.dx^2);
-            yCon = (dif.k*2*dif.dt)/(dif.dy^2);
+            xCon = (dif.k*dif.dt)/(dif.dx^2);
+            yCon = (dif.k*dif.dt)/(dif.dy^2);
             if dif.BCtype(1) == 'd' && dif.BCtype(2) == 'd' && dif.BCtype(3) == 'd' && dif.BCtype(4) == 'd'
                 mid = repmat((1+(2*xCon)+(2*yCon)), dif.xSteps^2, 1);
                 sX = repmat(-xCon, (dif.xSteps^2)-1,1);
@@ -83,35 +83,34 @@ classdef Diffusion2D
         % -------------------------------
 
         % Function to create b in Ax=b at some time t:
-        % Errors:
 
         function b = makeb(dif, t, prev)
             if dif.BCtype(1) == 'd' && dif.BCtype(2) == 'd' && dif.BCtype(3) == 'd' && dif.BCtype(4) == 'd'
                 b = zeros(dif.xSteps*dif.ySteps, 1);
                 count = 1;
-                xCon = (dif.k*2*dif.dt)/(dif.dx^2);
-                yCon = (dif.k*2*dif.dt)/(dif.dy^2);
+                xCon = (dif.k*dif.dt)/(dif.dx^2);
+                yCon = (dif.k*dif.dt)/(dif.dy^2);
                 for i = 1:dif.xSteps
                     for j = 1:dif.ySteps
 
                         if i == 1 && j == 1
-                            b(count, 1) = prev(i,j) + dif.fXYT((i*dif.dx)+dif.BCoord(1,1),(j*dif.dy)+dif.BCoord(2,1),t)*2*dif.dt + yCon*dif.gW(dif.dy*j, t) + xCon*dif.gS(dif.dx*i, t);
+                            b(count, 1) = prev(i,j) + dif.fXYT((i*dif.dx)+dif.BCoord(1,1),(j*dif.dy)+dif.BCoord(2,1),t)*dif.dt + yCon*dif.gW(dif.dy*j, t) + xCon*dif.gS(dif.dx*i, t);
                         elseif i == 1 && j == dif.ySteps
-                            b(count, 1) = prev(i,j) + dif.fXYT((i*dif.dx)+dif.BCoord(1,1),(j*dif.dy)+dif.BCoord(2,1),t)*2*dif.dt + yCon*dif.gW(dif.dy*j, t) + xCon*dif.gN(dif.dx*i, t);
+                            b(count, 1) = prev(i,j) + dif.fXYT((i*dif.dx)+dif.BCoord(1,1),(j*dif.dy)+dif.BCoord(2,1),t)*dif.dt + yCon*dif.gW(dif.dy*j, t) + xCon*dif.gN(dif.dx*i, t);
                         elseif i == dif.xSteps && j == 1
-                            b(count, 1) = prev(i,j) + dif.fXYT((i*dif.dx)+dif.BCoord(1,1),(j*dif.dy)+dif.BCoord(2,1),t)*2*dif.dt + yCon*dif.gE(dif.dy*j, t) + xCon*dif.gS(dif.dx*i, t);
+                            b(count, 1) = prev(i,j) + dif.fXYT((i*dif.dx)+dif.BCoord(1,1),(j*dif.dy)+dif.BCoord(2,1),t)*dif.dt + yCon*dif.gE(dif.dy*j, t) + xCon*dif.gS(dif.dx*i, t);
                         elseif i == dif.xSteps && j == dif.ySteps
-                            b(count, 1) = prev(i,j) + dif.fXYT((i*dif.dx)+dif.BCoord(1,1),(j*dif.dy)+dif.BCoord(2,1),t)*2*dif.dt + yCon*dif.gE(dif.dy*j, t) + xCon*dif.gN(dif.dx*i, t);
+                            b(count, 1) = prev(i,j) + dif.fXYT((i*dif.dx)+dif.BCoord(1,1),(j*dif.dy)+dif.BCoord(2,1),t)*dif.dt + yCon*dif.gE(dif.dy*j, t) + xCon*dif.gN(dif.dx*i, t);
                         elseif i == 1
-                            b(count, 1) = prev(i,j) + dif.fXYT((i*dif.dx)+dif.BCoord(1,1),(j*dif.dy)+dif.BCoord(2,1),t)*2*dif.dt + yCon*dif.gW(dif.dy*j, t);
+                            b(count, 1) = prev(i,j) + dif.fXYT((i*dif.dx)+dif.BCoord(1,1),(j*dif.dy)+dif.BCoord(2,1),t)*dif.dt + yCon*dif.gW(dif.dy*j, t);
                         elseif j == 1
-                            b(count, 1) = prev(i,j) + dif.fXYT((i*dif.dx)+dif.BCoord(1,1),(j*dif.dy)+dif.BCoord(2,1),t)*2*dif.dt + xCon*dif.gS(dif.dx*i, t);
+                            b(count, 1) = prev(i,j) + dif.fXYT((i*dif.dx)+dif.BCoord(1,1),(j*dif.dy)+dif.BCoord(2,1),t)*dif.dt + xCon*dif.gS(dif.dx*i, t);
                         elseif i == dif.xSteps
-                            b(count, 1) = prev(i,j) + dif.fXYT((i*dif.dx)+dif.BCoord(1,1),(j*dif.dy)+dif.BCoord(2,1),t)*2*dif.dt + yCon*dif.gE(dif.dy*j, t);
+                            b(count, 1) = prev(i,j) + dif.fXYT((i*dif.dx)+dif.BCoord(1,1),(j*dif.dy)+dif.BCoord(2,1),t)*dif.dt + yCon*dif.gE(dif.dy*j, t);
                         elseif j == dif.ySteps
-                            b(count, 1) = prev(i,j) + dif.fXYT((i*dif.dx)+dif.BCoord(1,1),(j*dif.dy)+dif.BCoord(2,1),t)*2*dif.dt + xCon*dif.gN(dif.dx*i, t);
+                            b(count, 1) = prev(i,j) + dif.fXYT((i*dif.dx)+dif.BCoord(1,1),(j*dif.dy)+dif.BCoord(2,1),t)*dif.dt + xCon*dif.gN(dif.dx*i, t);
                         else
-                            b(count, 1) = prev(i,j) + dif.fXYT((i*dif.dx)+dif.BCoord(1,1),(j*dif.dy)+dif.BCoord(2,1),t)*2*dif.dt;
+                            b(count, 1) = prev(i,j) + dif.fXYT((i*dif.dx)+dif.BCoord(1,1),(j*dif.dy)+dif.BCoord(2,1),t)*dif.dt;
                         end
 
                         count = count + 1;
@@ -187,10 +186,10 @@ classdef Diffusion2D
         % -------------------------------
 
         % Source Function: ut = uxx + f(x,y,t)
-        % Assuming the solution is u(x,y,t) = e^t * cos(x) * cos(y)
+        % Assuming the solution is u(x,y,t) = e^-t * cos(x) * cos(y)
 
         function fXYT = fXYT(dif, x, y, t)
-            fXYT = (2*dif.k + 1)*exp(t)*cos(x)*cos(y);
+            fXYT = (2*dif.k - 1)*exp(-t)*cos(x)*cos(y);
         end
 
         % -------------------------------
