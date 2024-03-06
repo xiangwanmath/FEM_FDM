@@ -6,16 +6,16 @@ dtheta = (2*pi)/(bSteps+1); % Delta theta
 k = 1e1; % Diffusivity Constant
 dt = (k/2)*((dr^2)+(dtheta^2)) * .001; % So called CFL for Delta time
 
-u = zeros(bSteps+1, bSteps+1, tSteps); % Initialize tensor u(x,y,t)
+u = zeros(bSteps+2, bSteps+1, tSteps); % Initialize tensor u(r,theta,t)
 
-for i = 1:bSteps+1 % Loop to traverse r
+for i = 1:bSteps+2 % Loop to traverse r
     for j = 1:bSteps+1 % Loop to traverse theta
         u(i,j,1) = IC((i-1)*dr, (j-1)*dtheta); % Enter Initial conditions to tensor
     end
 end
 
 for t = 2:tSteps % Loop to traverse time
-    for i = bSteps+1:-1:1 % Loop to traverse r
+    for i = bSteps+2:-1:1 % Loop to traverse r
         for j = 1:bSteps+1 % Loop to traverse theta
             ri = dr*(i-1); % Calculate ri to simplify calculations, subtract 1 to account for Matlab indexing
             % ^ think about this more
@@ -49,12 +49,12 @@ for t = 2:tSteps % Loop to traverse time
                 %--------------------------------------------------------
 
                 u(i, j, t) = ((psi+1)*u(i, j, t-1)) + (alpha*u(i+1, j, t-1)) + (beta*u(i+1, tN, t-1)) + (phi*u(i, jUp, t-1)) + (phi*u(i, jDown, t-1));
-            elseif i == bSteps+1 && j == 1 % if at South-East edge -> Use given BC and north = south; 2nd and 5th term
-                u(i, j, t) = ((psi+1)*u(i, j, t-1)) + (alpha*BC(dt*t,dtheta*j)) + (beta*u(i-1, j, t-1)) + (phi*u(i, j+1, t-1)) + (phi*u(i, bSteps+1, t-1));
-            elseif i == bSteps+1 && j == bSteps+1 % if at North-East edge -> Use given BC and north = south; 2nd and 4th term
-                u(i, j, t) = ((psi+1)*u(i, j, t-1)) + (alpha*BC(dt*t,dtheta*j)) + (beta*u(i-1, j, t-1)) + (phi*u(i, 1, t-1)) + (phi*u(i, j-1, t-1));
-            elseif i == bSteps+1 % if your on East edge of r -> Use given BC function; look at 2nd term
-                u(i, j, t) = ((psi+1)*u(i, j, t-1)) + (alpha*BC(dt*t,dtheta*j)) + (beta*u(i-1, j, t-1)) + (phi*u(i, j+1, t-1)) + (phi*u(i, j-1, t-1));
+            elseif i == bSteps+2 && j == 1 % if at South-East edge -> Use given BC and north = south; 2nd and 5th term
+                u(i, j, t) = ((psi+alpha+1)*u(i, j, t-1)) + (alpha*dr*BC(dt*t,dtheta*j)) + (beta*u(i-1, j, t-1)) + (phi*u(i, j+1, t-1)) + (phi*u(i, bSteps+1, t-1));
+            elseif i == bSteps+2 && j == bSteps+1 % if at North-East edge -> Use given BC and north = south; 2nd and 4th term
+                u(i, j, t) = ((psi+alpha+1)*u(i, j, t-1)) + (alpha*dr*BC(dt*t,dtheta*j)) + (beta*u(i-1, j, t-1)) + (phi*u(i, 1, t-1)) + (phi*u(i, j-1, t-1));
+            elseif i == bSteps+2 % if your on East edge of r -> Use given BC function; look at 2nd term
+                u(i, j, t) = ((psi+alpha+1)*u(i, j, t-1)) + (alpha*dr*BC(dt*t,dtheta*j)) + (beta*u(i-1, j, t-1)) + (phi*u(i, j+1, t-1)) + (phi*u(i, j-1, t-1));
             elseif j == 1 % if your on the South edge of theta -> north edge = south edge; look at 5th term
                 u(i, j, t) = ((psi+1)*u(i, j, t-1)) + (alpha*u(i+1, j, t-1)) + (beta*u(i-1, j, t-1)) + (phi*u(i, j+1, t-1)) + (phi*u(i, bSteps+1, t-1));
             elseif j == bSteps+1 % if your on the North edge of theta -> north edge = south edge; look at 4th term
