@@ -1,7 +1,7 @@
 
-bSteps = 11; % Amount of steps on the boundary -> only do odd... Explain in notes
-tSteps = 10; % Amount of time steps
-dr = (2*pi)/(bSteps+1); % Delta r
+bSteps = 15; % Amount of steps on the boundary -> only do odd... and -1 must must divisible by 4Explain in notes
+tSteps = 100; % Amount of time steps
+dr = (pi)/(bSteps+1); % Delta r
 dtheta = (2*pi)/(bSteps+1); % Delta theta
 k = 1e1; % Diffusivity Constant
 dt = (k/2)*((dr^2)+(dtheta^2)) * .001; % So called CFL for Delta time
@@ -18,11 +18,6 @@ for t = 2:tSteps % Loop to traverse time
     for i = bSteps+1:-1:1 % Loop to traverse r
         for j = 1:bSteps+1 % Loop to traverse theta
             ri = dr*(i-1); % Calculate ri to simplify calculations, subtract 1 to account for Matlab indexing
-            % ^ think about this more
-
-            if i == 1 % 1 is 0... but we are using r1 to solve for center
-                ri = dr*i;
-            end
 
             % Constants: Refer to notes
             psi = ((-2*k*dt)*(((ri^2)*(dtheta^2))+(dr^2)))/((ri^2)*(dr^2)*(dtheta^2));  
@@ -31,24 +26,7 @@ for t = 2:tSteps % Loop to traverse time
             phi = (k*dt)/((ri^2)*(dtheta^2));
 
             if i == 1 % if at the center -> u(0,theta)
-                tN = j+((bSteps+1)/2);
-
-                if tN > bSteps+1
-                    tN = mod(tN, bSteps+1);
-                end
-
-                % Do this conditional so you don't cause indexing errors at
-                % corners
-                jDown = j-1;
-                jUp = j+1;
-                if j == 1
-                    jDown = bSteps+1;
-                elseif j == bSteps+1
-                    jUp = 1;
-                end
-                %--------------------------------------------------------
-
-                u(i, j, t) = ((psi+1)*u(i, j, t-1)) + (alpha*u(i+1, j, t-1)) + (beta*u(i+1, tN, t-1)) + (phi*u(i, jUp, t-1)) + (phi*u(i, jDown, t-1));
+                u(i,j,t) = ((-4*dt*k)+1)*u(1,1,t-1) + (-4*dt*k)*(u(2,1,t-1)+u(2,ceil(bSteps/4)+1,t-1)+u(2,ceil(bSteps/2)+1,t-1)+u(2,bSteps+1,t-1));
             elseif i == bSteps+1 && j == 1 % if at South-East edge -> Use given BC and north = south; 2nd and 5th term
                 u(i, j, t) = ((psi+1)*u(i, j, t-1)) + (alpha*BC(dt*t,dtheta*j)) + (beta*u(i-1, j, t-1)) + (phi*u(i, j+1, t-1)) + (phi*u(i, bSteps+1, t-1));
             elseif i == bSteps+1 && j == bSteps+1 % if at North-East edge -> Use given BC and north = south; 2nd and 4th term
@@ -69,22 +47,57 @@ end
 % Show tensor
 disp(u)
 
+% Assuming you have your matrix of u values named 'u'
 
-% time_point = 3;
-% disp((u(2,1,time_point) - u(2,1,time_point - 1))/dt)
-% u(2,1,time_point - 1)
-% u(2,1,time_point)
+% Generate theta and r values based on the size of the matrix
+[num_rows, num_cols, num_slices] = size(u);
+theta = linspace(0, 2*pi, num_rows);
+r = linspace(0, 1, num_cols);
+
+% Convert polar coordinates to Cartesian coordinates for all slices
+[Theta, R] = meshgrid(theta, r);
+X = R .* cos(Theta);
+Y = R .* sin(Theta);
+
+% Create a figure for plotting
+figure;
+
+% Plot the slice at the beginning
+subplot(1, 3, 1);
+surf(X, Y, u(:,:,1));
+xlabel('X');
+ylabel('Y');
+zlabel('U');
+title('Slice at the Beginning');
+
+% Plot the slice in the middle
+middle_index = round(num_slices / 2);
+subplot(1, 3, 2);
+surf(X, Y, u(:,:,middle_index));
+xlabel('X');
+ylabel('Y');
+zlabel('U');
+title('Slice in the Middle');
+
+% Plot the slice at the end
+subplot(1, 3, 3);
+surf(X, Y, u(:,:,end));
+xlabel('X');
+ylabel('Y');
+zlabel('U');
+title('Slice at the End');
 
 
 % Initial Condition function
 function f = IC(r,theta)
-f = sin(r)*sin(r); 
+f = sin(r); 
 end
 
 % Boundary Condition function
 function g = BC(t,theta)
 g = 0; 
 end
+
 
 
 
