@@ -1,6 +1,6 @@
 
-bSteps = 79; % Amount of steps on the boundary -> only do odd... and -1 must must divisible by 4Explain in notes
-tSteps = 100; % Amount of time steps
+bSteps = 59; % Amount of steps on the boundary -> only do odd... and -1 must must divisible by 4Explain in notes
+tSteps = 20; % Amount of time steps
 R = 2*pi;
 dr = R/(bSteps+1); % Delta r
 dtheta = (2*pi)/(bSteps+1); % Delta theta
@@ -46,7 +46,7 @@ for t = 2:tSteps % Loop to traverse time
 end
 
 % Show tensor
-%disp(u)
+disp(u)
 
 
 
@@ -63,7 +63,7 @@ Y = R .* sin(Theta);
 % Create a figure for plotting
 figure;
 
-%{
+
 
 % Plot the slice at the beginning
 subplot(1, 3, 1);
@@ -92,18 +92,18 @@ ylabel('Y');
 zlabel('U');
 title('Slice at the End');
 
-%}
 
-plt(X,Y,u,tSteps)
+
+% plt(X,Y,u,tSteps)
 
 % Initial Condition function
 function f = IC(r,theta)
-f = (cos(r)*theta)/(2*pi); 
-end
+f = cos(r)+cos(theta);
+end 
 
 % Boundary Condition function
 function g = BC(t,theta)
-g = theta/(2*pi); 
+g = exp(-t)+cos(theta); 
 end
 
 function plt(X, Y, TP, tIter)

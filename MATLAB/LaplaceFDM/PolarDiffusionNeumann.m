@@ -60,7 +60,7 @@ Y = R .* sin(Theta);
 % Create a figure for plotting
 figure;
 
-%{
+
 
 % Plot the slice at the beginning
 subplot(1, 3, 1);
@@ -89,9 +89,8 @@ ylabel('Y');
 zlabel('U');
 title('Slice at the End');
 
-%}
 
-plt(X,Y,u,tSteps)
+% plt(X,Y,u,tSteps)
 
 
 % Initial Condition function
